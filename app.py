@@ -132,7 +132,6 @@ def save_commentary_history(commentary, ticker_data):
 
     _rset(REDIS_KEY_HIST, history, ex=60 * 60 * 24 * 95)
     print(f"  Commentary history saved ({len(history)} days)")
-    save_commentary_history(commentary, ticker_data)
 
 # ── Indicator calculations ───────────────────────────────────────────────────
 
@@ -392,6 +391,7 @@ def run_update():
             time.sleep(0.5)
 
         commentary = generate_commentary(ticker_data)
+        save_commentary_history(commentary, ticker_data)
 
         with _lock:
             cache["tickers"]      = ticker_data
@@ -512,10 +512,6 @@ def api_history():
     history = _rget(REDIS_KEY_HIST) or []
     history.reverse()
     return jsonify(history)
-
-
-@app.route("/redis-test")
-def redis_test():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
