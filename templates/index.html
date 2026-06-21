@@ -159,6 +159,13 @@ header {
 }
 .tile-canvas-wrap canvas { width: 100% !important; height: 100% !important; }
 
+/* Tile background based on flag alignment */
+.tile-bg-strong-bull { background: rgba(22,163,74,0.10) !important; border-color: rgba(22,163,74,0.25); }
+.tile-bg-bull        { background: rgba(22,163,74,0.05) !important; border-color: rgba(22,163,74,0.18); }
+.tile-bg-strong-bear { background: rgba(220,38,38,0.10) !important; border-color: rgba(220,38,38,0.25); }
+.tile-bg-bear        { background: rgba(220,38,38,0.05) !important; border-color: rgba(220,38,38,0.18); }
+.tile-bg-neutral     { background: var(--surface) !important; }
+  
 /* ── Footer ── */
 footer {
   text-align: center; padding: 12px; color: var(--muted);
@@ -215,6 +222,9 @@ footer {
   <div class="h-right">
     <div class="badge">Updated: <b>{{ last_updated }}</b></div>
     <div class="badge">Markets: <b>{{ tickers|length }}</b></div>
+    <a href="https://etf.market-dashboards.com" target="_blank" style="background:rgba(255,255,255,.12);border-radius:6px;padding:4px 10px;font-size:11px;color:#93c5fd;text-decoration:none;font-weight:600;">ETF Perf</a>
+    <a href="https://etf-volume.market-dashboards.com" target="_blank" style="background:rgba(255,255,255,.12);border-radius:6px;padding:4px 10px;font-size:11px;color:#93c5fd;text-decoration:none;font-weight:600;">ETF Volume</a>
+    <a href="https://breadth.market-dashboards.com" target="_blank" style="background:rgba(255,255,255,.12);border-radius:6px;padding:4px 10px;font-size:11px;color:#93c5fd;text-decoration:none;font-weight:600;">Breadth</a>
   </div>
 </header>
 
@@ -315,9 +325,9 @@ footer {
   <div class="row-label">US Equity &amp; Volatility</div>
   <div class="chart-row">
     {% for t in tickers if t.row == 1 %}
-    <div class="chart-tile">
+    <div class="chart-tile tile-bg-{{ t.bg_signal }}">
       <div class="tile-header">
-        <span class="tile-sym">{{ t.symbol }}</span>
+        <a class="tile-sym" href="https://charts.market-dashboards.com" target="_blank" style="text-decoration:none">{{ t.symbol }}</a>
         <span class="tile-name">{{ t.name }}</span>
         <span class="tile-price">
           {{ t.prefix }}{{ t.last_close }}
@@ -356,9 +366,9 @@ footer {
   <div class="row-label">International &amp; FX</div>
   <div class="chart-row">
     {% for t in tickers if t.row == 2 %}
-    <div class="chart-tile">
+    <div class="chart-tile tile-bg-{{ t.bg_signal }}">
       <div class="tile-header">
-        <span class="tile-sym">{{ t.symbol }}</span>
+        <a class="tile-sym" href="https://charts.market-dashboards.com" target="_blank" style="text-decoration:none">{{ t.symbol }}</a>
         <span class="tile-name">{{ t.name }}</span>
         <span class="tile-price">
           {{ t.prefix }}{{ t.last_close }}
@@ -396,9 +406,9 @@ footer {
   <div class="row-label">Commodities &amp; Rates</div>
   <div class="chart-row">
     {% for t in tickers if t.row == 3 %}
-    <div class="chart-tile">
+    <div class="chart-tile tile-bg-{{ t.bg_signal }}">
       <div class="tile-header">
-        <span class="tile-sym">{{ t.symbol }}</span>
+        <a class="tile-sym" href="https://charts.market-dashboards.com" target="_blank" style="text-decoration:none">{{ t.symbol }}</a>
         <span class="tile-name">{{ t.name }}</span>
         <span class="tile-price">
           {{ t.prefix }}{{ t.last_close }}
