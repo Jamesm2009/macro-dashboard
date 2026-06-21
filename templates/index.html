@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KCM Macro Dashboard</title>
+<style>
+:root {
+  --bg:      #eef1f6;
+  --surface: #ffffff;
+  --header:  #0f2240;
+  --border:  #d0d7e3;
+  --text:    #1a2035;
+  --muted:   #6b7280;
+  --accent:  #2563eb;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; font-size: 13px; }
+
+/* ── Header ── */
+header {
+  background: var(--header);
+  color: #fff;
+  padding: 10px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px;
+  position: sticky; top: 0; z-index: 20;
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+.h-left h1 { font-size: 16px; font-weight: 700; }
+.h-left .sub { font-size: 10.5px; color: #93c5fd; margin-top: 2px; }
+.h-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.badge { background: rgba(255,255,255,.12); border-radius: 6px; padding: 4px 10px; font-size: 11px; color: #cbd5e1; }
+.badge b { color: #fff; }
+
+/* ── Loading banner ── */
+.loading-banner {
+  background: #1e40af; color: #fff; padding: 10px 16px; font-size: 12.5px;
+  display: flex; align-items: center; gap: 12px; justify-content: center;
+}
+
+/* ── Finviz breadth strip ── */
+.breadth-strip {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 16px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.breadth-item { font-size: 11px; }
+.breadth-label {
+  display: flex; justify-content: space-between; margin-bottom: 3px;
+  font-weight: 600; color: var(--text);
+}
+.breadth-label .bl-green { color: #16a34a; }
+.breadth-label .bl-red   { color: #dc2626; }
+.breadth-track {
+  height: 12px; border-radius: 3px; overflow: hidden;
+  display: flex; background: #f1f5f9;
+}
+.breadth-fill-g { background: #16a34a; transition: width .3s; }
+.breadth-fill-r { background: #dc2626; transition: width .3s; }
+.breadth-counts {
+  display: flex; justify-content: space-between;
+  font-size: 9.5px; color: var(--muted); margin-top: 2px;
+}
+.breadth-na {
+  text-align: center; color: var(--muted); font-size: 11px;
+  grid-column: 1 / -1; padding: 6px;
+}
+
+/* ── Commentary strip ── */
+.commentary {
+  background: #0f172a;
+  color: #94a3b8;
+  padding: 8px 16px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  border-bottom: 1px solid #1e293b;
+}
+.commentary b { color: #e2e8f0; }
+.commentary .dot-sep { color: #475569; }
+
+/* ── Legend strip ── */
+.legend-strip {
+  background: #f8fafc; border-bottom: 1px solid var(--border);
+  padding: 5px 16px;
+  display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+  font-size: 10.5px; color: var(--muted);
+}
+.legend-strip b { color: var(--text); }
+.leg-line { display: inline-block; width: 18px; height: 2px; vertical-align: middle; margin-right: 3px; border-radius: 1px; }
+.leg-fill { display: inline-block; width: 18px; height: 8px; vertical-align: middle; margin-right: 3px; border-radius: 2px; }
+.leg-dot  { display: inline-block; width: 8px; height: 8px; border-radius: 50%; vertical-align: middle; margin-right: 3px; }
+
+/* ── Chart grid ── */
+.grid-section { padding: 6px 12px 0; }
+.row-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .6px; color: #94a3b8; padding: 6px 4px 4px;
+  border-bottom: 1px solid #e2e8f0; margin-bottom: 6px;
+}
+.chart-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.chart-tile {
+  background: var(--surface);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+.tile-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 8px 3px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.tile-sym {
+  font-weight: 800; font-size: 13px;
+  font-family: 'Courier New', monospace; color: var(--accent);
+}
+.tile-name {
+  font-size: 10px; color: var(--muted);
+  margin-left: 6px; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; max-width: 120px;
+}
+.tile-price {
+  font-size: 11px; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  margin-left: auto; padding-left: 6px;
+}
+.tile-price .chg-pos { color: #16a34a; }
+.tile-price .chg-neg { color: #dc2626; }
+.tile-price .chg-flat{ color: var(--muted); }
+
+/* Flag dots */
+.tile-flags {
+  display: flex; gap: 3px; padding: 2px 8px 4px;
+}
+.flag-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  display: inline-block; cursor: default;
+}
+.flag-g { background: #16a34a; box-shadow: 0 0 3px #16a34a88; }
+.flag-r { background: #dc2626; box-shadow: 0 0 3px #dc262688; }
+.flag-gr{ background: #d1d5db; }
+.flag-label {
+  font-size: 8px; color: var(--muted); margin-left: 1px; margin-right: 4px;
+  line-height: 10px;
+}
+.tile-canvas-wrap {
+  padding: 2px 4px 4px;
+  height: 200px;
+  position: relative;
+}
+.tile-canvas-wrap canvas { width: 100% !important; height: 100% !important; }
+
+/* ── Footer ── */
+footer {
+  text-align: center; padding: 12px; color: var(--muted);
+  font-size: 11px; border-top: 1px solid var(--border);
+  background: var(--surface); margin-top: 4px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .chart-row { grid-template-columns: repeat(2, 1fr); }
+  .breadth-strip { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 520px) {
+  .chart-row { grid-template-columns: 1fr; }
+  .breadth-strip { grid-template-columns: 1fr; }
+  .tile-canvas-wrap { height: 180px; }
+}
+</style>
+</head>
+<body>
+
+{% if error %}
+<div style="background:#991b1b;color:#fecaca;text-align:center;padding:10px;font-size:13px;font-weight:600;">
+  Error: {{ error }}
+</div>
+{% endif %}
+
+{% if is_loading %}
+<div class="loading-banner">
+  <span>Loading macro data...</span>
+  <span id="prog" style="opacity:.8">{{ progress }}</span>
+  <span id="tcnt" style="opacity:.6;font-size:11px;"></span>
+</div>
+<script>
+(function poll(){
+  setTimeout(function(){
+    fetch('/status').then(r=>r.json()).then(d=>{
+      var p=document.getElementById('prog'), c=document.getElementById('tcnt');
+      if(p) p.textContent=d.progress||'';
+      if(c) c.textContent=d.tickers>0?'('+d.tickers+' loaded)':'';
+      if(d.phase>=4 && d.tickers>0){ location.reload(); } else { poll(); }
+    }).catch(()=>poll());
+  },4000);
+})();
+</script>
+{% endif %}
+
+<!-- ── Header ── -->
+<header>
+  <div class="h-left">
+    <h1>KCM Macro Dashboard</h1>
+    <div class="sub">Bollinger Bands (21d) &middot; 63 EMA &middot; Volume &middot; Matrix Series &middot; 8-Month View</div>
+  </div>
+  <div class="h-right">
+    <div class="badge">Updated: <b>{{ last_updated }}</b></div>
+    <div class="badge">Markets: <b>{{ tickers|length }}</b></div>
+  </div>
+</header>
+
+<!-- ── Finviz Breadth Bars ── -->
+<div class="breadth-strip">
+{% if finviz %}
+  <!-- Advancing / Declining -->
+  <div class="breadth-item">
+    <div class="breadth-label">
+      <span class="bl-green">Advancing {{ finviz.adv_pct|default('—') }}%</span>
+      <span class="bl-red">Declining {{ finviz.dec_pct|default('—') }}%</span>
+    </div>
+    <div class="breadth-track">
+      <div class="breadth-fill-g" style="width:{{ finviz.adv_pct|default(50) }}%"></div>
+      <div class="breadth-fill-r" style="width:{{ finviz.dec_pct|default(50) }}%"></div>
+    </div>
+    <div class="breadth-counts">
+      <span>{{ finviz.adv_count|default('—') }}</span>
+      <span>{{ finviz.dec_count|default('—') }}</span>
+    </div>
+  </div>
+  <!-- New High / New Low -->
+  <div class="breadth-item">
+    <div class="breadth-label">
+      <span class="bl-green">New High {{ finviz.hi_pct|default('—') }}%</span>
+      <span class="bl-red">New Low {{ finviz.lo_pct|default('—') }}%</span>
+    </div>
+    <div class="breadth-track">
+      <div class="breadth-fill-g" style="width:{{ finviz.hi_pct|default(50) }}%"></div>
+      <div class="breadth-fill-r" style="width:{{ finviz.lo_pct|default(50) }}%"></div>
+    </div>
+    <div class="breadth-counts">
+      <span>{{ finviz.hi_count|default('—') }}</span>
+      <span>{{ finviz.lo_count|default('—') }}</span>
+    </div>
+  </div>
+  <!-- Above / Below SMA50 -->
+  <div class="breadth-item">
+    <div class="breadth-label">
+      <span class="bl-green">Above SMA50 {{ finviz.sma50_above_pct|default('—') }}%</span>
+      <span class="bl-red">Below {{ finviz.sma50_below_pct|default('—') }}%</span>
+    </div>
+    <div class="breadth-track">
+      <div class="breadth-fill-g" style="width:{{ finviz.sma50_above_pct|default(50) }}%"></div>
+      <div class="breadth-fill-r" style="width:{{ finviz.sma50_below_pct|default(50) }}%"></div>
+    </div>
+    <div class="breadth-counts">
+      <span>{{ finviz.sma50_above_count|default('—') }}</span>
+      <span>{{ finviz.sma50_below_count|default('—') }}</span>
+    </div>
+  </div>
+  <!-- Above / Below SMA200 -->
+  <div class="breadth-item">
+    <div class="breadth-label">
+      <span class="bl-green">Above SMA200 {{ finviz.sma200_above_pct|default('—') }}%</span>
+      <span class="bl-red">Below {{ finviz.sma200_below_pct|default('—') }}%</span>
+    </div>
+    <div class="breadth-track">
+      <div class="breadth-fill-g" style="width:{{ finviz.sma200_above_pct|default(50) }}%"></div>
+      <div class="breadth-fill-r" style="width:{{ finviz.sma200_below_pct|default(50) }}%"></div>
+    </div>
+    <div class="breadth-counts">
+      <span>{{ finviz.sma200_above_count|default('—') }}</span>
+      <span>{{ finviz.sma200_below_count|default('—') }}</span>
+    </div>
+  </div>
+{% else %}
+  <div class="breadth-na">Breadth data not available — waiting for breadth dashboard refresh</div>
+{% endif %}
+</div>
+
+<!-- ── Commentary ── -->
+{% if commentary %}
+<div class="commentary">
+  <b>MARKET PULSE:</b> {{ commentary }}
+</div>
+{% endif %}
+
+<!-- ── Legend ── -->
+<div class="legend-strip">
+  <span><span class="leg-line" style="background:#374151"></span><b>Price</b></span>
+  <span><span class="leg-fill" style="background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.3)"></span><b>Bollinger Band</b> (21d, 2&sigma;)</span>
+  <span><span class="leg-line" style="background:rgba(59,130,246,0.6)"></span><b>21 DMA</b></span>
+  <span><span class="leg-line" style="background:#d97706;border-top:1px dashed #d97706;height:0"></span><b>63 EMA</b></span>
+  <span><span class="leg-dot" style="background:#16a34a"></span>/<span class="leg-dot" style="background:#dc2626;margin-left:2px"></span> <b>Vol</b> bars</span>
+  &nbsp;|&nbsp;
+  <b>Flags:</b>
+  <span>21D</span> <span>63E</span> <span>Vol</span> <span>MS</span>
+  <span class="leg-dot" style="background:#16a34a"></span>above/bull
+  <span class="leg-dot" style="background:#dc2626;margin-left:2px"></span>below/bear
+</div>
+
+<!-- ── Chart Grid ── -->
+{% if tickers|length > 0 %}
+<div class="grid-section">
+
+  <!-- Row 1: US Equity + Volatility -->
+  <div class="row-label">US Equity &amp; Volatility</div>
+  <div class="chart-row">
+    {% for t in tickers if t.row == 1 %}
+    <div class="chart-tile">
+      <div class="tile-header">
+        <span class="tile-sym">{{ t.symbol }}</span>
+        <span class="tile-name">{{ t.name }}</span>
+        <span class="tile-price">
+          {{ t.prefix }}{{ t.last_close }}
+          {% if t.change_1d > 0 %}
+            <span class="chg-pos">+{{ t.change_1d }}%</span>
+          {% elif t.change_1d < 0 %}
+            <span class="chg-neg">{{ t.change_1d }}%</span>
+          {% else %}
+            <span class="chg-flat">0.00%</span>
+          {% endif %}
+        </span>
+      </div>
+      <div class="tile-flags">
+        <span class="flag-dot {{ 'flag-g' if t.flags.above_21dma else 'flag-r' }}" title="21 DMA: {{ 'Above' if t.flags.above_21dma else 'Below' }}"></span>
+        <span class="flag-label">21D</span>
+        <span class="flag-dot {{ 'flag-g' if t.flags.above_63ema else 'flag-r' }}" title="63 EMA: {{ 'Above' if t.flags.above_63ema else 'Below' }}"></span>
+        <span class="flag-label">63E</span>
+        {% if t.has_volume %}
+        <span class="flag-dot {{ 'flag-g' if t.flags.vol_up else 'flag-r' }}" title="Volume: {{ 'Above' if t.flags.vol_up else 'Below' }} 20 DMA"></span>
+        <span class="flag-label">Vol</span>
+        {% else %}
+        <span class="flag-dot flag-gr" title="No volume data"></span>
+        <span class="flag-label">Vol</span>
+        {% endif %}
+        <span class="flag-dot {{ 'flag-g' if t.flags.ms_bull else 'flag-r' }}" title="Matrix Series: {{ 'Bull' if t.flags.ms_bull else 'Bear' }}"></span>
+        <span class="flag-label">MS</span>
+      </div>
+      <div class="tile-canvas-wrap">
+        <canvas id="chart-{{ t.symbol }}"></canvas>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Row 2: International + FX -->
+  <div class="row-label">International &amp; FX</div>
+  <div class="chart-row">
+    {% for t in tickers if t.row == 2 %}
+    <div class="chart-tile">
+      <div class="tile-header">
+        <span class="tile-sym">{{ t.symbol }}</span>
+        <span class="tile-name">{{ t.name }}</span>
+        <span class="tile-price">
+          {{ t.prefix }}{{ t.last_close }}
+          {% if t.change_1d > 0 %}
+            <span class="chg-pos">+{{ t.change_1d }}%</span>
+          {% elif t.change_1d < 0 %}
+            <span class="chg-neg">{{ t.change_1d }}%</span>
+          {% else %}
+            <span class="chg-flat">0.00%</span>
+          {% endif %}
+        </span>
+      </div>
+      <div class="tile-flags">
+        <span class="flag-dot {{ 'flag-g' if t.flags.above_21dma else 'flag-r' }}" title="21 DMA"></span>
+        <span class="flag-label">21D</span>
+        <span class="flag-dot {{ 'flag-g' if t.flags.above_63ema else 'flag-r' }}" title="63 EMA"></span>
+        <span class="flag-label">63E</span>
+        {% if t.has_volume %}
+        <span class="flag-dot {{ 'flag-g' if t.flags.vol_up else 'flag-r' }}" title="Volume"></span>
+        {% else %}
+        <span class="flag-dot flag-gr" title="No volume data"></span>
+        {% endif %}
+        <span class="flag-label">Vol</span>
+        <span class="flag-dot {{ 'flag-g' if t.flags.ms_bull else 'flag-r' }}" title="Matrix Series"></span>
+        <span class="flag-label">MS</span>
+      </div>
+      <div class="tile-canvas-wrap">
+        <canvas id="chart-{{ t.symbol }}"></canvas>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Row 3: Commodities + Rates -->
+  <div class="row-label">Commodities &amp; Rates</div>
+  <div class="chart-row">
+    {% for t in tickers if t.row == 3 %}
+    <div class="chart-tile">
+      <div class="tile-header">
+        <span class="tile-sym">{{ t.symbol }}</span>
+        <span class="tile-name">{{ t.name }}</span>
+        <span class="tile-price">
+          {{ t.prefix }}{{ t.last_close }}
+          {% if t.change_1d > 0 %}
+            <span class="chg-pos">+{{ t.change_1d }}%</span>
+          {% elif t.change_1d < 0 %}
+            <span class="chg-neg">{{ t.change_1d }}%</span>
+          {% else %}
+            <span class="chg-flat">0.00%</span>
+          {% endif %}
+        </span>
+      </div>
+      <div class="tile-flags">
+        <span class="flag-dot {{ 'flag-g' if t.flags.above_21dma else 'flag-r' }}" title="21 DMA"></span>
+        <span class="flag-label">21D</span>
+        <span class="flag-dot {{ 'flag-g' if t.flags.above_63ema else 'flag-r' }}" title="63 EMA"></span>
+        <span class="flag-label">63E</span>
+        {% if t.has_volume %}
+        <span class="flag-dot {{ 'flag-g' if t.flags.vol_up else 'flag-r' }}" title="Volume"></span>
+        {% else %}
+        <span class="flag-dot flag-gr" title="No volume data"></span>
+        {% endif %}
+        <span class="flag-label">Vol</span>
+        <span class="flag-dot {{ 'flag-g' if t.flags.ms_bull else 'flag-r' }}" title="Matrix Series"></span>
+        <span class="flag-label">MS</span>
+      </div>
+      <div class="tile-canvas-wrap">
+        <canvas id="chart-{{ t.symbol }}"></canvas>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endif %}
+
+<footer>
+  Data: Yahoo Finance &nbsp;|&nbsp; Breadth: Finviz &nbsp;|&nbsp;
+  Refresh daily after market close (3:30 PM CT) &nbsp;|&nbsp;
+  Flags: 21 DMA &middot; 63 EMA &middot; Volume vs 20 DMA &middot; Matrix Series
+</footer>
+
+<!-- ── Chart.js ── -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+(function() {
+  var allData = {{ ticker_json | safe }};
+  if (!allData || !allData.length) return;
+
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  allData.forEach(function(t) {
+    var canvas = document.getElementById('chart-' + t.symbol);
+    if (!canvas) return;
+
+    var dates   = t.dates   || [];
+    var close   = t.close   || [];
+    var bbUp    = t.bb_upper|| [];
+    var bbMid   = t.bb_mid  || [];
+    var bbLo    = t.bb_lower|| [];
+    var ema63   = t.ema63   || [];
+    var volume  = t.volume  || [];
+    var volMa   = t.vol_ma20|| [];
+    var hasVol  = t.has_volume && volume.length > 0;
+
+    // Volume bar colors: green if close > prev close, else red
+    var volColors = [];
+    if (hasVol) {
+      for (var i = 0; i < volume.length; i++) {
+        if (i === 0) { volColors.push('rgba(107,114,128,0.25)'); continue; }
+        var c = close[i], p = close[i-1];
+        if (c === null || p === null) { volColors.push('rgba(107,114,128,0.25)'); continue; }
+        volColors.push(c >= p ? 'rgba(22,163,74,0.30)' : 'rgba(220,38,38,0.30)');
+      }
+    }
+
+    // Compute max volume for scaling (bars in bottom 20% of chart)
+    var maxVol = 0;
+    if (hasVol) {
+      for (var i = 0; i < volume.length; i++) {
+        if (volume[i] !== null && volume[i] > maxVol) maxVol = volume[i];
+      }
+    }
+
+    // Build datasets
+    var datasets = [
+      // 0: BB Upper — thin border + fill down to BB Lower
+      {
+        label: 'BB Upper',
+        data: bbUp,
+        borderColor: 'rgba(59,130,246,0.25)',
+        borderWidth: 0.5,
+        pointRadius: 0,
+        pointHitRadius: 0,
+        fill: { target: 1, above: 'rgba(59,130,246,0.06)', below: 'rgba(59,130,246,0.06)' },
+        order: 6,
+        yAxisID: 'y'
+      },
+      // 1: BB Lower
+      {
+        label: 'BB Lower',
+        data: bbLo,
+        borderColor: 'rgba(59,130,246,0.25)',
+        borderWidth: 0.5,
+        pointRadius: 0,
+        pointHitRadius: 0,
+        fill: false,
+        order: 5,
+        yAxisID: 'y'
+      },
+      // 2: BB Mid / 21 SMA
+      {
+        label: '21 DMA',
+        data: bbMid,
+        borderColor: 'rgba(59,130,246,0.55)',
+        borderWidth: 1,
+        pointRadius: 0,
+        pointHitRadius: 0,
+        fill: false,
+        order: 4,
+        yAxisID: 'y'
+      },
+      // 3: 63 EMA
+      {
+        label: '63 EMA',
+        data: ema63,
+        borderColor: '#d97706',
+        borderWidth: 1,
+        borderDash: [4, 2],
+        pointRadius: 0,
+        pointHitRadius: 0,
+        fill: false,
+        order: 3,
+        yAxisID: 'y'
+      },
+      // 4: Close price (on top)
+      {
+        label: 'Close',
+        data: close,
+        borderColor: '#374151',
+        borderWidth: 1.5,
+        pointRadius: 0,
+        pointHitRadius: 4,
+        fill: false,
+        order: 1,
+        yAxisID: 'y'
+      }
+    ];
+
+    // Volume datasets (only if volume data exists)
+    if (hasVol) {
+      datasets.push({
+        type: 'bar',
+        label: 'Volume',
+        data: volume,
+        backgroundColor: volColors,
+        borderWidth: 0,
+        order: 8,
+        yAxisID: 'y1'
+      });
+      datasets.push({
+        label: 'Vol 20 DMA',
+        data: volMa,
+        borderColor: 'rgba(107,114,128,0.4)',
+        borderWidth: 1,
+        borderDash: [2, 2],
+        pointRadius: 0,
+        pointHitRadius: 0,
+        fill: false,
+        order: 7,
+        yAxisID: 'y1'
+      });
+    }
+
+    // X-axis tick callback — show month name at month boundaries
+    var tickCb = function(val, idx) {
+      if (idx === 0) return '';
+      var d = dates[idx], prev = dates[idx - 1];
+      if (!d || !prev) return '';
+      if (d.substring(5, 7) !== prev.substring(5, 7)) {
+        return MONTHS[parseInt(d.substring(5, 7), 10) - 1];
+      }
+      return '';
+    };
+
+    // Tooltip label callback
+    var tooltipCb = function(ctx) {
+      var label = ctx.dataset.label || '';
+      var val   = ctx.parsed.y;
+      if (val === null || val === undefined) return null;
+      if (label === 'Volume' || label === 'Vol 20 DMA') {
+        return label + ': ' + (val / 1e6).toFixed(1) + 'M';
+      }
+      return label + ': ' + val.toFixed(2);
+    };
+
+    // Scales
+    var scales = {
+      x: {
+        display: true,
+        ticks: {
+          autoSkip: false,
+          maxRotation: 0,
+          font: { size: 8 },
+          color: '#94a3b8',
+          callback: tickCb
+        },
+        grid: { display: false }
+      },
+      y: {
+        display: true,
+        position: 'left',
+        ticks: {
+          font: { size: 8 },
+          color: '#94a3b8',
+          maxTicksLimit: 5,
+          callback: function(v) {
+            if (t.prefix === '$') return '$' + v.toFixed(0);
+            return v.toFixed(1);
+          }
+        },
+        grid: { color: 'rgba(0,0,0,0.04)', drawTicks: false }
+      }
+    };
+
+    if (hasVol) {
+      scales.y1 = {
+        display: false,
+        position: 'right',
+        beginAtZero: true,
+        suggestedMax: maxVol * 5,   // volume bars fill bottom ~20%
+        grid: { display: false }
+      };
+    }
+
+    new Chart(canvas, {
+      type: 'line',
+      data: { labels: dates, datasets: datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            enabled: true,
+            backgroundColor: 'rgba(15,23,42,0.92)',
+            titleFont: { size: 10 },
+            bodyFont:  { size: 10 },
+            padding: 6,
+            displayColors: false,
+            callbacks: {
+              title: function(items) {
+                if (!items.length) return '';
+                return t.symbol + '  ' + items[0].label;
+              },
+              label: tooltipCb
+            },
+            filter: function(item) {
+              var lbl = item.dataset.label;
+              return lbl === 'Close' || lbl === '21 DMA' || lbl === '63 EMA' || lbl === 'Volume';
+            }
+          },
+          filler: { propagate: true }
+        },
+        scales: scales,
+        elements: { line: { tension: 0 } },
+        layout: { padding: { left: 2, right: 4, top: 2, bottom: 0 } }
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>
