@@ -97,6 +97,42 @@ def _rset(key, value, ex=90000):
         print(f"  Redis SET error: {e}")
         return False
 
+# ── Commentary history ───────────────────────────────────────────────────────
+
+REDIS_KEY_HIST = "macro_commentary_history_v1"
+
+def save_commentary_history(commentary, ticker_data):
+    """Append today's commentary + trend changes to history (max 90 days)."""
+    history = _rget(REDIS_KEY_HIST) or []
+
+    # Extract trend flips for this day
+    trend_changes = []
+    for sym, td in ticker_data.items():
+        fl = td.get("flags", {})
+        if fl.get("flipped_above_63ema"):
+            trend_changes.append(f"{sym} crossed above 63 EMA")
+        if fl.get("flipped_below_63ema"):
+            trend_changes.append(f"{sym} crossed below 63 EMA")
+        if fl.get("flipped_above_21dma"):
+            trend_changes.append(f"{sym} crossed above 21 DMA")
+        if fl.get("flipped_below_21dma"):
+            trend_changes.append(f"{sym} crossed below 21 DMA")
+
+    today_str = str(date.today())
+    entry = {
+        "date": today_str,
+        "commentary": commentary,
+        "trend_changes": trend_changes,
+    }
+
+    # Replace today's entry if exists, else append
+    history = [h for h in history if h["date"] != today_str]
+    history.append(entry)
+    history = history[-90:]  # keep last 90 days
+
+    _rset(REDIS_KEY_HIST, history, ex=60 * 60 * 24 * 95)
+    print(f"  Commentary history saved ({len(history)} days)")
+    save_commentary_history(commentary, ticker_data)
 
 # ── Indicator calculations ───────────────────────────────────────────────────
 
@@ -215,6 +251,16 @@ def process_ticker(tcfg):
 
         change_1d = round((lc - pc) / pc * 100, 2) if pc and pc != 0 else 0
 
+        # Background signal: 3 core flags (21DMA, 63EMA, MS) set direction,
+        # volume amplifies (makes it one step darker)
+        core_green = sum([flags["above_21dma"], flags["above_63ema"], flags["ms_bull"]])
+        if core_green == 3:
+            bg_signal = "strong-bull" if flags.get("vol_up") else "bull"
+        elif core_green == 0:
+            bg_signal = "strong-bear" if not flags.get("vol_up") else "bear"
+        else:
+            bg_signal = "neutral"
+            
         return {
             "symbol":    symbol,
             "name":      name,
@@ -233,6 +279,7 @@ def process_ticker(tcfg):
             "flags":      flags,
             "last_close": round(lc, 2),
             "change_1d":  change_1d,
+            "bg_signal":  bg_signal,
         }
 
     except Exception as e:
@@ -459,6 +506,16 @@ def redis_test():
         "redis_token_set": bool(REDIS_TOKEN),
     })
 
+@app.route("/api/history")
+def api_history():
+    """Return commentary history (most recent first)."""
+    history = _rget(REDIS_KEY_HIST) or []
+    history.reverse()
+    return jsonify(history)
+
+
+@app.route("/redis-test")
+def redis_test():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
