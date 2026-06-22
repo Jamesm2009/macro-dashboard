@@ -53,6 +53,7 @@ header {
 .cmt-green { color: #4ade80; font-weight: 700; }
 .cmt-red   { color: #f87171; font-weight: 700; }
 .cmt-alert { color: #fbbf24; font-weight: 700; }
+.cmt-ratio { color: #a5b4fc; font-weight: 600; }
 
 /* ── Tabs ── */
 .tab-bar { display: flex; gap: 0; background: #f1f5f9; border-bottom: 2px solid var(--border); padding: 0 14px; }
@@ -312,10 +313,10 @@ footer { text-align: center; padding: 12px; color: var(--muted); font-size: 11px
 <div id="tab-ratios" class="tab-content">
 
 <div class="legend-strip">
-  <span><span class="leg-line" style="background:var(--accent)"></span><b>Ratio</b></span>
-  <span><span class="leg-line" style="background:#d97706;border-top:1px dashed #d97706;height:0"></span><b>63 EMA</b></span>
-  <span><span class="leg-line" style="background:#94a3b8;border-top:1px dashed #94a3b8;height:0"></span><b>Trend line</b> (linear regression)</span>
-  &nbsp;|&nbsp; Rising ratio = numerator outperforming
+  <span><span class="leg-line" style="background:#16a34a"></span><b>Ratio</b> (slope up)</span>
+  <span><span class="leg-line" style="background:#dc2626"></span><b>Ratio</b> (slope down)</span>
+  <span><span class="leg-line" style="background:#94a3b8;border-top:1px dashed #94a3b8;height:0"></span><b>Trend line</b> (full-period)</span>
+  &nbsp;|&nbsp; Color flips when 42-day slope changes sign &nbsp;|&nbsp; Rising = numerator outperforming
 </div>
 
 {% if ratios|length > 0 %}
@@ -428,15 +429,16 @@ function showTab(name) {
   ratioData.forEach(function(r) {
     var canvas = document.getElementById('ratio-' + r.id);
     if (!canvas) return;
-    var dates=r.dates||[], ratio=r.ratio||[], ema=r.ema63||[], trend=r.trend||[];
-    var trendColor = r.trend_direction === 'up' ? '#16a34a' : '#dc2626';
+    var dates=r.dates||[], ratio=r.ratio||[], trend=r.trend||[];
+    var slopePos = r.slope_positive || [];
 
     var tickCb=function(val,idx){if(idx===0)return'';var d=dates[idx],prev=dates[idx-1];if(!d||!prev)return'';if(d.substring(5,7)!==prev.substring(5,7)){return MONTHS[parseInt(d.substring(5,7),10)-1];}return'';};
 
     new Chart(canvas,{type:'line',data:{labels:dates,datasets:[
-      {label:'Ratio',data:ratio,borderColor:trendColor,borderWidth:2,pointRadius:0,pointHitRadius:4,fill:false,order:1},
-      {label:'63 EMA',data:ema,borderColor:'#d97706',borderWidth:1,borderDash:[4,2],pointRadius:0,pointHitRadius:0,fill:false,order:2},
-      {label:'Trend',data:trend,borderColor:'#94a3b8',borderWidth:1.5,borderDash:[6,3],pointRadius:0,pointHitRadius:0,fill:false,order:3}
+      {label:'Ratio',data:ratio,borderWidth:2,pointRadius:0,pointHitRadius:4,fill:false,order:1,
+        borderColor: r.current_slope_dir === 'up' ? '#16a34a' : '#dc2626',
+        segment:{borderColor:function(ctx){var idx=ctx.p1DataIndex;return(slopePos[idx])?'#16a34a':'#dc2626';}}},
+      {label:'Trend',data:trend,borderColor:'#94a3b8',borderWidth:1.5,borderDash:[6,3],pointRadius:0,pointHitRadius:0,fill:false,order:2}
     ]},options:{
       responsive:true,maintainAspectRatio:false,animation:false,
       interaction:{mode:'index',intersect:false},
