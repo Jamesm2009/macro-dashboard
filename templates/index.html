@@ -29,9 +29,11 @@ header {
 }
 .h-left h1 { font-size: 16px; font-weight: 700; }
 .h-left .sub { font-size: 10.5px; color: #93c5fd; margin-top: 2px; }
-.h-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.h-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .badge { background: rgba(255,255,255,.12); border-radius: 6px; padding: 4px 10px; font-size: 11px; color: #cbd5e1; }
 .badge b { color: #fff; }
+.nav-btn { background: rgba(255,255,255,.12); border-radius: 6px; padding: 4px 10px; font-size: 11px; color: #93c5fd; text-decoration: none; font-weight: 600; transition: background .15s; }
+.nav-btn:hover { background: rgba(255,255,255,.22); color: #fff; }
 
 /* ── Loading banner ── */
 .loading-banner {
@@ -80,7 +82,9 @@ header {
   border-bottom: 1px solid #1e293b;
 }
 .commentary b { color: #fbbf24; }
-.commentary .dot-sep { color: #475569; }
+.cmt-green { color: #4ade80; font-weight: 700; }
+.cmt-red   { color: #f87171; font-weight: 700; }
+.cmt-alert { color: #fbbf24; font-weight: 700; }
 
 /* ── Legend strip ── */
 .legend-strip {
@@ -113,7 +117,10 @@ header {
   border: 1px solid var(--border);
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  cursor: pointer;
+  transition: box-shadow .15s;
 }
+.chart-tile:hover { box-shadow: 0 3px 12px rgba(0,0,0,.12); }
 .tile-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 3px 8px 2px;
@@ -122,7 +129,9 @@ header {
 .tile-sym {
   font-weight: 800; font-size: 13px;
   font-family: 'Courier New', monospace; color: var(--accent);
+  text-decoration: none;
 }
+.tile-sym:hover { text-decoration: underline; }
 .tile-name {
   font-size: 10px; color: var(--muted);
   margin-left: 6px; white-space: nowrap;
@@ -165,7 +174,7 @@ header {
 .tile-bg-strong-bear { border: 3px solid #dc2626 !important; }
 .tile-bg-bear        { border: 3px solid #fca5a5 !important; }
 .tile-bg-neutral     { border: 2px solid var(--border) !important; }
-  
+
 /* ── Footer ── */
 footer {
   text-align: center; padding: 12px; color: var(--muted);
@@ -222,16 +231,15 @@ footer {
   <div class="h-right">
     <div class="badge">Updated: <b>{{ last_updated }}</b></div>
     <div class="badge">Markets: <b>{{ tickers|length }}</b></div>
-    <a href="https://etf.market-dashboards.com" target="_blank" style="background:rgba(255,255,255,.12);border-radius:6px;padding:4px 10px;font-size:11px;color:#93c5fd;text-decoration:none;font-weight:600;">ETF Perf</a>
-    <a href="https://etf-volume.market-dashboards.com" target="_blank" style="background:rgba(255,255,255,.12);border-radius:6px;padding:4px 10px;font-size:11px;color:#93c5fd;text-decoration:none;font-weight:600;">ETF Volume</a>
-    <a href="https://breadth.market-dashboards.com" target="_blank" style="background:rgba(255,255,255,.12);border-radius:6px;padding:4px 10px;font-size:11px;color:#93c5fd;text-decoration:none;font-weight:600;">Breadth</a>
+    <a class="nav-btn" href="https://etf.market-dashboards.com" target="_blank">ETF Perf</a>
+    <a class="nav-btn" href="https://etf-volume.market-dashboards.com" target="_blank">ETF Volume</a>
+    <a class="nav-btn" href="https://breadth.market-dashboards.com" target="_blank">Breadth</a>
   </div>
 </header>
 
 <!-- ── Finviz Breadth Bars ── -->
 <div class="breadth-strip">
 {% if finviz %}
-  <!-- Advancing / Declining -->
   <div class="breadth-item">
     <div class="breadth-label">
       <span class="bl-green">Advancing {{ finviz.adv_pct|default('—') }}%</span>
@@ -246,7 +254,6 @@ footer {
       <span>{{ finviz.dec_count|default('—') }}</span>
     </div>
   </div>
-  <!-- New High / New Low -->
   <div class="breadth-item">
     <div class="breadth-label">
       <span class="bl-green">New High {{ finviz.hi_pct|default('—') }}%</span>
@@ -261,7 +268,6 @@ footer {
       <span>{{ finviz.lo_count|default('—') }}</span>
     </div>
   </div>
-  <!-- Above / Below SMA50 -->
   <div class="breadth-item">
     <div class="breadth-label">
       <span class="bl-green">Above SMA50 {{ finviz.sma50_above_pct|default('—') }}%</span>
@@ -276,7 +282,6 @@ footer {
       <span>{{ finviz.sma50_below_count|default('—') }}</span>
     </div>
   </div>
-  <!-- Above / Below SMA200 -->
   <div class="breadth-item">
     <div class="breadth-label">
       <span class="bl-green">Above SMA200 {{ finviz.sma200_above_pct|default('—') }}%</span>
@@ -299,7 +304,7 @@ footer {
 <!-- ── Commentary ── -->
 {% if commentary %}
 <div class="commentary">
-  <b>MARKET PULSE:</b> {{ commentary }}
+  <b>MARKET PULSE:</b> {{ commentary | safe }}
 </div>
 {% endif %}
 
@@ -315,6 +320,8 @@ footer {
   <span>21D</span> <span>63E</span> <span>Vol</span> <span>MS</span>
   <span class="leg-dot" style="background:#16a34a"></span>above/bull
   <span class="leg-dot" style="background:#dc2626;margin-left:2px"></span>below/bear
+  &nbsp;|&nbsp;
+  <span><span class="leg-line" style="background:#dc2626;border-top:1px dashed #dc2626;height:0"></span><b>Ref line</b> (VVIX 110, TNX 4.5)</span>
 </div>
 
 <!-- ── Chart Grid ── -->
@@ -325,9 +332,9 @@ footer {
   <div class="row-label">US Equity &amp; Volatility</div>
   <div class="chart-row">
     {% for t in tickers if t.row == 1 %}
-    <div class="chart-tile tile-bg-{{ t.bg_signal }}">
+    <div class="chart-tile tile-bg-{{ t.bg_signal }}" onclick="window.open('https://charts.market-dashboards.com','_blank')">
       <div class="tile-header">
-        <a class="tile-sym" href="https://charts.market-dashboards.com" target="_blank" style="text-decoration:none">{{ t.symbol }}</a>
+        <span class="tile-sym">{{ t.symbol }}</span>
         <span class="tile-name">{{ t.name }}</span>
         <span class="tile-price">
           {{ t.prefix }}{{ t.last_close }}
@@ -347,11 +354,10 @@ footer {
         <span class="flag-label">63E</span>
         {% if t.has_volume %}
         <span class="flag-dot {{ 'flag-g' if t.flags.vol_up else 'flag-r' }}" title="Volume: {{ 'Above' if t.flags.vol_up else 'Below' }} 20 DMA"></span>
-        <span class="flag-label">Vol</span>
         {% else %}
         <span class="flag-dot flag-gr" title="No volume data"></span>
-        <span class="flag-label">Vol</span>
         {% endif %}
+        <span class="flag-label">Vol</span>
         <span class="flag-dot {{ 'flag-g' if t.flags.ms_bull else 'flag-r' }}" title="Matrix Series: {{ 'Bull' if t.flags.ms_bull else 'Bear' }}"></span>
         <span class="flag-label">MS</span>
       </div>
@@ -366,9 +372,9 @@ footer {
   <div class="row-label">International &amp; FX</div>
   <div class="chart-row">
     {% for t in tickers if t.row == 2 %}
-    <div class="chart-tile tile-bg-{{ t.bg_signal }}">
+    <div class="chart-tile tile-bg-{{ t.bg_signal }}" onclick="window.open('https://charts.market-dashboards.com','_blank')">
       <div class="tile-header">
-        <a class="tile-sym" href="https://charts.market-dashboards.com" target="_blank" style="text-decoration:none">{{ t.symbol }}</a>
+        <span class="tile-sym">{{ t.symbol }}</span>
         <span class="tile-name">{{ t.name }}</span>
         <span class="tile-price">
           {{ t.prefix }}{{ t.last_close }}
@@ -406,9 +412,9 @@ footer {
   <div class="row-label">Commodities &amp; Rates</div>
   <div class="chart-row">
     {% for t in tickers if t.row == 3 %}
-    <div class="chart-tile tile-bg-{{ t.bg_signal }}">
+    <div class="chart-tile tile-bg-{{ t.bg_signal }}" onclick="window.open('https://charts.market-dashboards.com','_blank')">
       <div class="tile-header">
-        <a class="tile-sym" href="https://charts.market-dashboards.com" target="_blank" style="text-decoration:none">{{ t.symbol }}</a>
+        <span class="tile-sym">{{ t.symbol }}</span>
         <span class="tile-name">{{ t.name }}</span>
         <span class="tile-price">
           {{ t.prefix }}{{ t.last_close }}
@@ -449,10 +455,12 @@ footer {
   Data: Yahoo Finance &nbsp;|&nbsp; Breadth: Finviz &nbsp;|&nbsp;
   Refresh daily after market close (3:30 PM CT) &nbsp;|&nbsp;
   Flags: 21 DMA &middot; 63 EMA &middot; Volume vs 20 DMA &middot; Matrix Series
+  &nbsp;|&nbsp; Click any chart to open full view
 </footer>
 
-<!-- ── Chart.js ── -->
+<!-- ── Chart.js + Annotation plugin ── -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
 <script>
 (function() {
   var allData = {{ ticker_json | safe }};
@@ -473,8 +481,9 @@ footer {
     var volume  = t.volume  || [];
     var volMa   = t.vol_ma20|| [];
     var hasVol  = t.has_volume && volume.length > 0;
+    var refLines= t.ref_lines || [];
 
-    // Volume bar colors: green if close > prev close, else red
+    // Volume bar colors
     var volColors = [];
     if (hasVol) {
       for (var i = 0; i < volume.length; i++) {
@@ -485,7 +494,6 @@ footer {
       }
     }
 
-    // Compute max volume for scaling (bars in bottom 20% of chart)
     var maxVol = 0;
     if (hasVol) {
       for (var i = 0; i < volume.length; i++) {
@@ -495,79 +503,57 @@ footer {
 
     // Build datasets
     var datasets = [
-      // 0: BB Upper — thin border + fill down to BB Lower
       {
         label: 'BB Upper',
         data: bbUp,
         borderColor: 'rgba(59,130,246,0.25)',
         borderWidth: 0.5,
-        pointRadius: 0,
-        pointHitRadius: 0,
+        pointRadius: 0, pointHitRadius: 0,
         fill: { target: 1, above: 'rgba(59,130,246,0.06)', below: 'rgba(59,130,246,0.06)' },
-        order: 6,
-        yAxisID: 'y'
+        order: 6, yAxisID: 'y'
       },
-      // 1: BB Lower
       {
         label: 'BB Lower',
         data: bbLo,
         borderColor: 'rgba(59,130,246,0.25)',
         borderWidth: 0.5,
-        pointRadius: 0,
-        pointHitRadius: 0,
-        fill: false,
-        order: 5,
-        yAxisID: 'y'
+        pointRadius: 0, pointHitRadius: 0,
+        fill: false, order: 5, yAxisID: 'y'
       },
-      // 2: BB Mid / 21 SMA
       {
         label: '21 DMA',
         data: bbMid,
         borderColor: 'rgba(59,130,246,0.55)',
         borderWidth: 1,
-        pointRadius: 0,
-        pointHitRadius: 0,
-        fill: false,
-        order: 4,
-        yAxisID: 'y'
+        pointRadius: 0, pointHitRadius: 0,
+        fill: false, order: 4, yAxisID: 'y'
       },
-      // 3: 63 EMA
       {
         label: '63 EMA',
         data: ema63,
         borderColor: '#d97706',
         borderWidth: 1,
         borderDash: [4, 2],
-        pointRadius: 0,
-        pointHitRadius: 0,
-        fill: false,
-        order: 3,
-        yAxisID: 'y'
+        pointRadius: 0, pointHitRadius: 0,
+        fill: false, order: 3, yAxisID: 'y'
       },
-      // 4: Close price (on top)
       {
         label: 'Close',
         data: close,
         borderColor: '#374151',
         borderWidth: 1.5,
-        pointRadius: 0,
-        pointHitRadius: 4,
-        fill: false,
-        order: 1,
-        yAxisID: 'y'
+        pointRadius: 0, pointHitRadius: 4,
+        fill: false, order: 1, yAxisID: 'y'
       }
     ];
 
-    // Volume datasets (only if volume data exists)
     if (hasVol) {
       datasets.push({
         type: 'bar',
         label: 'Volume',
         data: volume,
         backgroundColor: volColors,
-        borderWidth: 0,
-        order: 8,
-        yAxisID: 'y1'
+        borderWidth: 0, order: 8, yAxisID: 'y1'
       });
       datasets.push({
         label: 'Vol 20 DMA',
@@ -575,15 +561,34 @@ footer {
         borderColor: 'rgba(107,114,128,0.4)',
         borderWidth: 1,
         borderDash: [2, 2],
-        pointRadius: 0,
-        pointHitRadius: 0,
-        fill: false,
-        order: 7,
-        yAxisID: 'y1'
+        pointRadius: 0, pointHitRadius: 0,
+        fill: false, order: 7, yAxisID: 'y1'
       });
     }
 
-    // X-axis tick callback — show month name at month boundaries
+    // Build annotation config for reference lines
+    var annotations = {};
+    refLines.forEach(function(rl, idx) {
+      annotations['refLine' + idx] = {
+        type: 'line',
+        yMin: rl.value,
+        yMax: rl.value,
+        borderColor: rl.color || '#dc2626',
+        borderWidth: 1.5,
+        borderDash: [6, 3],
+        label: {
+          display: true,
+          content: rl.label || String(rl.value),
+          position: 'start',
+          backgroundColor: 'rgba(220,38,38,0.08)',
+          color: rl.color || '#dc2626',
+          font: { size: 8, weight: 'bold' },
+          padding: { top: 1, bottom: 1, left: 3, right: 3 }
+        }
+      };
+    });
+
+    // X-axis tick callback
     var tickCb = function(val, idx) {
       if (idx === 0) return '';
       var d = dates[idx], prev = dates[idx - 1];
@@ -594,7 +599,7 @@ footer {
       return '';
     };
 
-    // Tooltip label callback
+    // Tooltip
     var tooltipCb = function(ctx) {
       var label = ctx.dataset.label || '';
       var val   = ctx.parsed.y;
@@ -610,21 +615,16 @@ footer {
       x: {
         display: true,
         ticks: {
-          autoSkip: false,
-          maxRotation: 0,
-          font: { size: 8 },
-          color: '#94a3b8',
+          autoSkip: false, maxRotation: 0,
+          font: { size: 8 }, color: '#94a3b8',
           callback: tickCb
         },
         grid: { display: false }
       },
       y: {
-        display: true,
-        position: 'left',
+        display: true, position: 'left',
         ticks: {
-          font: { size: 8 },
-          color: '#94a3b8',
-          maxTicksLimit: 5,
+          font: { size: 8 }, color: '#94a3b8', maxTicksLimit: 5,
           callback: function(v) {
             if (t.prefix === '$') return '$' + v.toFixed(0);
             return v.toFixed(1);
@@ -636,10 +636,8 @@ footer {
 
     if (hasVol) {
       scales.y1 = {
-        display: false,
-        position: 'right',
-        beginAtZero: true,
-        suggestedMax: maxVol * 5,   // volume bars fill bottom ~20%
+        display: false, position: 'right',
+        beginAtZero: true, suggestedMax: maxVol * 5,
         grid: { display: false }
       };
     }
@@ -657,10 +655,8 @@ footer {
           tooltip: {
             enabled: true,
             backgroundColor: 'rgba(15,23,42,0.92)',
-            titleFont: { size: 10 },
-            bodyFont:  { size: 10 },
-            padding: 6,
-            displayColors: false,
+            titleFont: { size: 10 }, bodyFont: { size: 10 },
+            padding: 6, displayColors: false,
             callbacks: {
               title: function(items) {
                 if (!items.length) return '';
@@ -673,7 +669,8 @@ footer {
               return lbl === 'Close' || lbl === '21 DMA' || lbl === '63 EMA' || lbl === 'Volume';
             }
           },
-          filler: { propagate: true }
+          filler: { propagate: true },
+          annotation: { annotations: annotations }
         },
         scales: scales,
         elements: { line: { tension: 0 } },
