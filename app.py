@@ -330,11 +330,20 @@ def process_ticker(tcfg):
         import traceback; traceback.print_exc()
         return None
 
+def calc_rolling_slope(series, window=42):
+    """Rolling linear regression slope — positive = uptrend, negative = downtrend."""
+    x = np.arange(window, dtype=float)
+    x_mean = x.mean()
+    x_var = ((x - x_mean) ** 2).sum()
+    def _slope(y):
+        return ((x - x_mean) * (y - y.mean())).sum() / x_var
+    return series.rolling(window, min_periods=window).apply(_slope, raw=True)
+
 
 # ── Ratio calculations ───────────────────────────────────────────────────────
 
 def calc_ratio_pair(close_num, close_den, display_days=170):
-    """Calculate ratio, 63 EMA, and linear trend for two close series."""
+    """Calculate ratio, rolling slope, and linear trend for two close series."""
     combined = pd.DataFrame({"num": close_num, "den": close_den}).dropna()
     if len(combined) < 50:
         return None
@@ -348,11 +357,18 @@ def calc_ratio_pair(close_num, close_den, display_days=170):
     dates  = [str(d.date()) for d in r_disp.index]
     values = [round(float(v), 4) for v in r_disp.values]
 
-    # 63 EMA
-    ema = ratio.ewm(span=63, adjust=False).mean().iloc[-n:]
-    ema_list = [round(float(v), 4) if pd.notna(v) else None for v in ema.values]
+    # Rolling slope (42-day window) — drives line color
+    slopes = calc_rolling_slope(ratio, 42).iloc[-n:]
+    slope_positive = [bool(v > 0) if pd.notna(v) else True for v in slopes.values]
 
-    # Linear regression trend
+    # Current slope direction
+    latest_slope = slopes.dropna()
+    if len(latest_slope) >= 1:
+        current_slope_dir = "up" if latest_slope.iloc[-1] > 0 else "down"
+    else:
+        current_slope_dir = "flat"
+
+    # Full-period linear regression trend line (reference)
     x = np.arange(n, dtype=float)
     y = np.array(values, dtype=float)
     mask = ~np.isnan(y)
@@ -360,14 +376,14 @@ def calc_ratio_pair(close_num, close_den, display_days=170):
         coeffs = np.polyfit(x[mask], y[mask], 1)
         trend = np.polyval(coeffs, x)
         trend_list = [round(float(v), 4) for v in trend]
-        trend_dir = "up" if coeffs[0] > 0 else "down"
     else:
         trend_list = [None] * n
-        trend_dir = "flat"
 
     return {
-        "dates": dates, "ratio": values, "ema63": ema_list,
-        "trend": trend_list, "trend_direction": trend_dir,
+        "dates": dates, "ratio": values,
+        "slope_positive": slope_positive,
+        "trend": trend_list,
+        "current_slope_dir": current_slope_dir,
         "current": values[-1] if values else None,
     }
 
