@@ -379,6 +379,28 @@ def calc_ratio_pair(close_num, close_den, display_days=170):
     else:
         trend_list = [None] * n
 
+    # Ratio reads (from ratios stored in cache)
+    ratio_data = cache.get("ratios", {})
+    ratio_reads = []
+    RATIO_LABELS = {
+        "SPY_TLT":   ("risk-on", "risk-off / bonds bid"),
+        "SPHB_SPLV": ("high-beta leading", "low-vol leading"),
+        "IWD_IWF":   ("value over growth", "growth over value"),
+        "IWM_MGK":   ("small-cap leading", "mega-cap leading"),
+        "HYG_TNX":   ("credit healthy", "credit stress"),
+        "XLY_XLU":   ("cyclical strength", "defensive rotation"),
+    }
+    for rid, (up_lbl, dn_lbl) in RATIO_LABELS.items():
+        rd = ratio_data.get(rid)
+        if rd:
+            d = rd.get("current_slope_dir", "flat")
+            if d == "up":
+                ratio_reads.append(f"{rd['name']} \u25b2 {up_lbl}")
+            elif d == "down":
+                ratio_reads.append(f"{rd['name']} \u25bc {dn_lbl}")
+    if ratio_reads:
+        parts.append('<span class="cmt-ratio">RATIOS: ' + " · ".join(ratio_reads) + '</span>')
+        
     return {
         "dates": dates, "ratio": values,
         "slope_positive": slope_positive,
@@ -388,7 +410,7 @@ def calc_ratio_pair(close_num, close_den, display_days=170):
     }
 
 
-# ── Commentary generator (~1000 chars, HTML spans) ──────────────────────────
+# ── Commentary generator (~1500 chars, HTML spans) ──────────────────────────
 
 def generate_commentary(td, finviz=None):
     def fg(sym, key):
@@ -502,7 +524,7 @@ def generate_commentary(td, finviz=None):
             arrow = "\u2191" if "above" in key else "\u2193"
             parts.append(f"{arrow} {label}: {', '.join(flipped)}")
 
-    return " \u00b7 ".join(parts)[:1000]
+    return " \u00b7 ".join(parts)[:1500]
 
 
 # ── Main update routine ─────────────────────────────────────────────────────
@@ -561,7 +583,9 @@ def run_update():
                     print(f"    ratio {pair['name']}: OK ({rd['trend_direction']})")
 
         # Phase 3: Commentary (with Finviz breadth)
-        finviz = _rget(REDIS_KEY_FV)
+        with _lock:
+            cache["ratios"] = ratios
+            finviz = _rget(REDIS_KEY_FV)
         commentary = generate_commentary(ticker_data, finviz)
         save_commentary_history(commentary, ticker_data)
 
