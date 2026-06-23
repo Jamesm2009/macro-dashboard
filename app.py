@@ -580,7 +580,7 @@ def run_update():
                         "id": pair["id"], "name": pair["name"],
                         "desc": pair["desc"], **rd,
                     }
-                    print(f"    ratio {pair['name']}: OK ({rd['current_slope_dir']})")
+                    print(f"    ratio {pair['name']}: OK ({rd['trend_direction']})")
 
         # Phase 3: Commentary (with Finviz breadth)
         finviz = _rget(REDIS_KEY_FV)
