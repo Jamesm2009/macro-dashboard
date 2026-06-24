@@ -435,9 +435,7 @@ function showTab(name) {
     var tickCb=function(val,idx){if(idx===0)return'';var d=dates[idx],prev=dates[idx-1];if(!d||!prev)return'';if(d.substring(5,7)!==prev.substring(5,7)){return MONTHS[parseInt(d.substring(5,7),10)-1];}return'';};
 
     new Chart(canvas,{type:'line',data:{labels:dates,datasets:[
-      {label:'Ratio',data:ratio,borderWidth:2,pointRadius:0,pointHitRadius:4,fill:false,order:1,
-        borderColor: (r.current_slope_dir === 'up') ? '#16a34a' : '#dc2626',
-        segment:{borderColor:function(ctx){if(!slopePos||!slopePos.length)return'#dc2626';var i=ctx.p1DataIndex;return(i>=0&&i<slopePos.length&&slopePos[i]===true)?'#16a34a':'#dc2626';}}},
+      {label:'Ratio',data:ratio,borderColor:'#2563eb',borderWidth:2,pointRadius:0,pointHitRadius:4,fill:false,order:1},
       {label:'Trend',data:trend,borderColor:'#94a3b8',borderWidth:1.5,borderDash:[6,3],pointRadius:0,pointHitRadius:0,fill:false,order:2}
     ]},options:{
       responsive:true,maintainAspectRatio:false,animation:false,
