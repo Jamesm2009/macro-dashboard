@@ -54,7 +54,7 @@ Auto-generated observations (~1500 chars max) including:
 - **VVIX monitor**: Approaching/above 110 vomit level, vol crush detection
 - **SPY volume spikes**: Flags when volume exceeds 1.5x the 20-day average
 - **US equity posture**: All above/below 63 EMA assessment
-- **Regional vs Dollar**: DXY strength/weakness impact on Europe & EM
+- **International vs Dollar**: DXY strength/weakness impact on Europe & EM
 - **Commodity/Dollar correlation**: Gold/Oil vs Dollar interplay
 - **Rate/Bond signals**: TNX vs IEF, 4.5% yield threshold
 - **Breadth confirmation**: Finviz SMA200 % reading (from shared Redis cache)
