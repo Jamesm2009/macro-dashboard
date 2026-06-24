@@ -377,14 +377,17 @@ def calc_ratio_pair(close_num, close_den, display_days=170):
         coeffs = np.polyfit(x[mask], y[mask], 1)
         trend = np.polyval(coeffs, x)
         trend_list = [round(float(v), 4) for v in trend]
+        trend_dir = "up" if coeffs[0] > 0 else "down"
     else:
         trend_list = [None] * n
+        trend_dir = "flat"
 
     return {
         "dates": dates, "ratio": values,
         "slope_positive": slope_positive,
         "trend": trend_list,
         "current_slope_dir": current_slope_dir,
+        "trend_direction": trend_dir,
         "current": values[-1] if values else None,
     }
 
