@@ -329,9 +329,9 @@ footer { text-align: center; padding: 12px; color: var(--muted); font-size: 11px
       </div>
       <div class="ratio-meta">
         <span class="ratio-val">{{ '%.3f'|format(r.current) if r.current else '—' }}</span>
-        {% if r.current_slope_dir == 'up' %}
+        {% if r.trend_direction == 'up' %}
           <span class="ratio-trend-up">TREND ▲</span>
-        {% elif r.current_slope_dir == 'down' %}
+        {% elif r.trend_direction == 'down' %}
           <span class="ratio-trend-down">TREND ▼</span>
         {% endif %}
       </div>
