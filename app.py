@@ -505,6 +505,7 @@ def generate_commentary(td, finviz=None, ratios=None):
 
     # Ratio slope reads
     ratio_reads = []
+    ratio_data = ratios or {}
     RATIO_LABELS = {
         "SPY_TLT":   ("risk-on", "risk-off / bonds bid"),
         "SPHB_SPLV": ("high-beta leading", "low-vol leading"),
