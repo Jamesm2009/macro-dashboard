@@ -233,7 +233,7 @@ footer { text-align: center; padding: 12px; color: var(--muted); font-size: 11px
   <div class="row-label">US Equity &amp; Volatility</div>
   <div class="chart-row">
     {% for t in tickers if t.row == 1 %}
-    <div class="chart-tile tile-bg-{{ t.bg_signal }}" onclick="window.open('https://charts.market-dashboards.com','_blank')">
+    <div class="chart-tile tile-bg-{{ t.bg_signal }}" onclick="window.open('https://charts.market-dashboards.com?symbol={{ t.symbol }}','_blank')">
       <div class="tile-header">
         <span class="tile-sym">{{ t.symbol }}</span>
         <span class="tile-name">{{ t.name }}</span>
@@ -258,7 +258,7 @@ footer { text-align: center; padding: 12px; color: var(--muted); font-size: 11px
   <div class="row-label">International &amp; FX</div>
   <div class="chart-row">
     {% for t in tickers if t.row == 2 %}
-    <div class="chart-tile tile-bg-{{ t.bg_signal }}" onclick="window.open('https://charts.market-dashboards.com','_blank')">
+    <div class="chart-tile tile-bg-{{ t.bg_signal }}" onclick="window.open('https://charts.market-dashboards.com?symbol={{ t.symbol }}','_blank')">
       <div class="tile-header">
         <span class="tile-sym">{{ t.symbol }}</span>
         <span class="tile-name">{{ t.name }}</span>
@@ -283,7 +283,7 @@ footer { text-align: center; padding: 12px; color: var(--muted); font-size: 11px
   <div class="row-label">Commodities &amp; Rates</div>
   <div class="chart-row">
     {% for t in tickers if t.row == 3 %}
-    <div class="chart-tile tile-bg-{{ t.bg_signal }}" onclick="window.open('https://charts.market-dashboards.com','_blank')">
+    <div class="chart-tile tile-bg-{{ t.bg_signal }}" onclick="window.open('https://charts.market-dashboards.com?symbol={{ t.symbol }}','_blank')">
       <div class="tile-header">
         <span class="tile-sym">{{ t.symbol }}</span>
         <span class="tile-name">{{ t.name }}</span>
