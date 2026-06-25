@@ -532,7 +532,25 @@ def generate_commentary(td, finviz=None, ratios=None):
 
 
 # ── Main update routine ─────────────────────────────────────────────────────
-
+def fetch_finviz_headline():
+    """Scrape the one-line market summary from Finviz homepage."""
+    import re
+    try:
+        r = _req.get("https://finviz.com",
+                     headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
+                     timeout=10)
+        if r.status_code != 200:
+            return None
+        match = re.search(r'why-stock-moving-init-data[^>]*>(.*?)</script>', r.text, re.DOTALL)
+        if match:
+            data = json.loads(match.group(1))
+            headline = data.get("whyMoving", {}).get("headline")
+            return headline
+        return None
+    except Exception as e:
+        print(f"  Finviz headline error: {e}")
+        return None
+        
 def run_update():
     with _lock:
         cache["phase"] = 1
@@ -585,6 +603,12 @@ def run_update():
                         "desc": pair["desc"], **rd,
                     }
                     print(f"    ratio {pair['name']}: OK ({rd['current_slope_dir']})")
+
+        # Finviz headline
+        with _lock:
+            cache["progress"] = "Fetching Finviz headline..."
+        finviz_headline = fetch_finviz_headline()
+        print(f"  Finviz headline: {'OK' if finviz_headline else 'SKIP'}")
 
         # Phase 3: Commentary (with Finviz breadth)
         finviz = _rget(REDIS_KEY_FV)
