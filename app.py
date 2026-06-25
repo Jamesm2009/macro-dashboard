@@ -624,7 +624,7 @@ def run_update():
             cache["phase"]        = 4
             cache["progress"]     = "Complete"
 
-       payload = {
+        payload = {
             "tickers":      ticker_data,
             "ratios":       ratios,
             "commentary":   commentary,
