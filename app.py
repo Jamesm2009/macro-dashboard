@@ -618,16 +618,18 @@ def run_update():
         with _lock:
             cache["tickers"]      = ticker_data
             cache["ratios"]       = ratios
+            cache["finviz_headline"] = finviz_headline
             cache["commentary"]   = commentary
             cache["last_updated"] = datetime.now(CT).strftime("%-m/%-d/%y %H:%M CT")
             cache["phase"]        = 4
             cache["progress"]     = "Complete"
 
-        payload = {
+       payload = {
             "tickers":      ticker_data,
             "ratios":       ratios,
             "commentary":   commentary,
             "last_updated": cache["last_updated"],
+            "finviz_headline": finviz_headline,
         }
         ok = _rset(REDIS_KEY, payload, ex=90000)
         print(f"  Redis save: {'OK' if ok else 'FAILED'} ({len(ticker_data)} tickers, {len(ratios)} ratios)")
@@ -683,6 +685,7 @@ def index():
         ratios=ratio_list,
         ratio_json=json.dumps(ratio_list),
         finviz=finviz,
+        finviz_headline=snap.get("finviz_headline", ""),
         commentary=snap["commentary"],
         last_updated=snap["last_updated"],
         is_loading=is_loading,
